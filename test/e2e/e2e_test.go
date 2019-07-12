@@ -165,4 +165,8 @@ func TestE2E(t *testing.T) {
 	if podsBefore > podsAfter {
 		t.Fatalf("We should have see more pods on this node as per kubeadm's way of installing %v, %v", podsBefore, podsAfter)
 	}
+	// Delete test replication controller after testing
+	if err = clientSet.CoreV1().ReplicationControllers("default").Delete("test-rc",nil); err!=nil {
+		t.Errorf("Error shutting down test replication controller %v",err)
+	}
 }
