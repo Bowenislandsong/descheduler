@@ -17,6 +17,9 @@ limitations under the License.
 package pod
 
 import (
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/fake"
+	core "k8s.io/client-go/testing"
 	"testing"
 
 	"github.com/kubernetes-incubator/descheduler/test"
@@ -80,5 +83,16 @@ func TestPodTypes(t *testing.T) {
 	if !IsLatencySensitivePod(p6) {
 		t.Errorf("Expected p6 to be latency sensitive pod")
 	}
+	(*p6).Status.Phase = v1.PodFailed
 
+	fakeClient := &fake.Clientset{}
+	fakeClient.Fake.AddReactor("list", "pods", func(action core.Action) (bool, runtime.Object, error) {
+		return true, &v1.PodList{Items: []v1.Pod{*p1, *p2, *p3, *p4, *p5, *p6}}, nil
+	})
+	fakeClient.Fake.AddReactor("get", "nodes", func(action core.Action) (bool, runtime.Object, error) {
+		return true, n1, nil
+	})
+	if pods, err := ListPodsOnANode(fakeClient, n1); err != nil || len(pods) != 1 {
+		t.Errorf("Expecting list Pods on a node to have 1 pod instead of %v, %v", len(pods), err)
+	}
 }
