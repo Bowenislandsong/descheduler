@@ -138,6 +138,7 @@ func TestE2E(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error creating deployment %v", err)
 	}
+	time.Sleep(10 * time.Second)
 	podsBefore := math.MaxInt16
 	for i := range nodeList.Items {
 		// Skip the Master Node
